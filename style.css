@@ -60,6 +60,8 @@ body {
 .mode-group label {
     font-size: 1rem;
     margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #8b8175;
 }
 
 /* Input field for adjusting duration */
@@ -73,9 +75,32 @@ body {
     margin-bottom: 0.5rem;
 }
 
+/* Wrapper for input and "min" label */
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Space between input and "min" label */
+}
+
+/* Adjust "min" text */
+.input-wrapper span {
+    font-size: 1rem;
+    color: #666;
+}
+
+/* Input field inside the wrapper */
+.input-wrapper input {
+    width: 60px;
+    padding: 0.5rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
 /* Start button */
 .start-btn {
-    background-color: #ff5f5f;  /* Red color for the start button */
+    background-color: #ff5f5f;
     color: white;
     padding: 1rem 2rem;
     border: none;
@@ -87,7 +112,7 @@ body {
 }
 
 .start-btn:hover {
-    background-color: #ff4e4e;  /* Darker red on hover */
+    background-color: #ff4e4e;
 }
 
 /* Pause button */
@@ -105,12 +130,12 @@ body {
 }
 
 .pause-btn:hover {
-    background-color: #4e4e4e;  /* Darker grey on hover */
+    background-color: #4e4e4e;
 }
 
 /* Resume button (Blue) */
 .resume-btn {
-    background-color: #4287f5;  /* Blue color for the resume button */
+    background-color: #4287f5;
     color: white;
     padding: 1rem 2rem;
     border: none;
@@ -123,5 +148,23 @@ body {
 }
 
 .resume-btn:hover {
-    background-color: #3575d1;  /* Darker blue on hover */
+    background-color: #3575d1;
+}
+
+/* Reset button */
+.reset-btn {
+    background-color: #3575d1;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-top: 1.5rem;
+    margin-left: 1rem;  /* Space between buttons */
+}
+
+.reset-btn:hover {
+    background-color: #706f6f;
 }
