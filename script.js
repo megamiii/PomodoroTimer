@@ -1,17 +1,23 @@
-let focusTime = 25 * 60;  // Default 25 minutes in seconds
-let shortBreakTime = 5 * 60;  // Default 5 minutes in seconds
-let longBreakTime = 30 * 60;  // Default 30 minutes in seconds
+let defaultFocusTime = 25 * 60;  // Default 25 minutes in seconds
+let defaultShortBreakTime = 5 * 60;  // Default 5 minutes in seconds
+let defaultLongBreakTime = 30 * 60;  // Default 30 minutes in seconds
+
+let focusTime = defaultFocusTime;
+let shortBreakTime = defaultShortBreakTime;
+let longBreakTime = defaultLongBreakTime;
 
 let currentTime = focusTime;  // Start with focus time by default
 let interval;
 let isRunning = false;
 let isPaused = false;  // Flag to check if the timer is paused
 let focusSessionsCompleted = 0;  // Track number of completed focus sessions
+let isFocusSession = true;  // Flag to indicate if it's a focus session
 
 const minutesDisplay = document.getElementById('minutes');
 const secondsDisplay = document.getElementById('seconds');
 const startButton = document.getElementById('start');
-const pauseButton = document.getElementById('pause');  // Reference to the pause/resume button
+const pauseButton = document.getElementById('pause');
+const resetButton = document.getElementById('reset');
 
 // Get input fields for duration adjustments
 const focusDurationInput = document.getElementById('focus-time');
@@ -48,7 +54,7 @@ function startTimer() {
     }, 1000);
 }
 
-// Function to reset the timer to a specific time
+// Function to reset the timer to a specific time without starting it
 function resetTimer(time) {
     clearInterval(interval);  // Clear any active interval
     currentTime = time;  // Set the current time to the specified value
@@ -70,42 +76,75 @@ function enableInputFields() {
     longBreakDurationInput.disabled = false;
 }
 
-// Handle transitions between Focus/Break sessions
+// Function to reset everything back to initial state
+function resetEverything() {
+    clearInterval(interval);  // Stop any active timer
+    isRunning = false;
+    isPaused = false;
+    focusSessionsCompleted = 0;
+    isFocusSession = true;  // Reset to focus session
+
+    // Reset times to default values
+    focusTime = defaultFocusTime;
+    shortBreakTime = defaultShortBreakTime;
+    longBreakTime = defaultLongBreakTime;
+    currentTime = focusTime;
+
+    // Reset input fields to their default values
+    focusDurationInput.value = 25;
+    shortBreakDurationInput.value = 5;
+    longBreakDurationInput.value = 30;
+
+    // Enable input fields for adjusting time
+    enableInputFields();
+
+    // Reset the displayed time
+    updateTimerDisplay();
+
+    // Reset button states
+    startButton.disabled = false;
+    pauseButton.disabled = true;
+    resetButton.disabled = true;
+    pauseButton.textContent = "PAUSE";  // Reset the pause button text
+    pauseButton.classList.remove('resume-btn');
+    pauseButton.classList.add('pause-btn');  // Ensure pause button is in its original state
+}
+
+// Add an event listener to the reset button
+resetButton.addEventListener('click', resetEverything);
+
+// Handle transitions between Focus/Break sessions with alerts
 function handleSessionCompletion() {
-    if (focusSessionsCompleted < 4) {
-        if (currentTime === focusTime) {
-            // Focus session complete, start short break
-            focusSessionsCompleted++;
+    if (isFocusSession) {
+        // Focus session is complete, move to break
+        focusSessionsCompleted++;
+        if (focusSessionsCompleted < 4) {
+            alert('Focus session over! Time for a short break. 😊🍅');
             resetTimer(shortBreakTime);
-            alert(`Time for a short break! (${focusSessionsCompleted}/4 focus sessions completed)`);
-            startTimer();  // Automatically start short break
+            isFocusSession = false;  // Switch to break mode
         } else {
-            // Short break complete, start next focus session
-            resetTimer(focusTime);
-            alert('Focus session starting again!');
-            startTimer();  // Automatically start next focus session
+            alert('Focus session over! Time for a long break. 😊🍅');
+            resetTimer(longBreakTime);
+            isFocusSession = false;  // Switch to long break
         }
     } else {
-        // After 4 focus sessions, start a long break
-        if (currentTime === focusTime) {
-            focusSessionsCompleted++;
-            resetTimer(longBreakTime);
-            alert('Time for a long break! You’ve completed 4 focus sessions.');
-            startTimer();  // Automatically start long break
+        // Break is complete, move back to focus
+        if (focusSessionsCompleted >= 4) {
+            alert('Long break over! Starting a new focus cycle. 😊🍅');
+            focusSessionsCompleted = 0;  // Reset focus session count
         } else {
-            // Long break complete, reset focus sessions and start a new cycle
-            focusSessionsCompleted = 0;
-            resetTimer(focusTime);
-            alert('Long break finished! Starting new focus session cycle.');
-            startTimer();  // Automatically start new focus session
+            alert('Short break over! Time to focus again. 😊🍅');
         }
+        resetTimer(focusTime);
+        isFocusSession = true;  // Switch back to focus session
     }
+    startTimer();  // Automatically start the next session
 }
 
 // Update the big timer when custom focus/short/long break durations are changed
 focusDurationInput.addEventListener('input', () => {
     focusTime = focusDurationInput.value * 60;  // Convert minutes to seconds
-    resetTimer(focusTime);  // Immediately update the big timer
+    if (!isRunning) resetTimer(focusTime);  // Update the big timer only if the timer isn't running
 });
 
 shortBreakDurationInput.addEventListener('input', () => {
@@ -118,15 +157,11 @@ longBreakDurationInput.addEventListener('input', () => {
 
 // Start the timer when "START" is pressed
 startButton.addEventListener('click', () => {
-    if (!isRunning) {
+    if (!isRunning && !isPaused) {
         startButton.disabled = true;  // Disable start button after starting
         pauseButton.disabled = false;  // Enable pause button
-        // Start the timer with the current session (Focus or Break)
-        if (focusSessionsCompleted < 4) {
-            resetTimer(focusTime);  // Focus session
-        } else {
-            resetTimer(longBreakTime);  // Long break after 4 focus sessions
-        }
+        resetButton.disabled = false;  // Enable reset button
+        resetTimer(focusTime);  // Start with focus session
         startTimer();  // Start the countdown
     }
 });
@@ -141,9 +176,9 @@ pauseButton.addEventListener('click', () => {
         pauseButton.classList.remove('pause-btn');
         pauseButton.classList.add('resume-btn');  // Change the color to blue
     } else if (isPaused) {
-        startTimer();  // Resume the timer
+        startTimer();  // Resume the timer from where it was paused
         isPaused = false;
-        pauseButton.textContent = "PAUSE";  // Change the button text to Pause
+        pauseButton.textContent = "PAUSE";  // Change the button text back to Pause
         pauseButton.classList.remove('resume-btn');
         pauseButton.classList.add('pause-btn');  // Change the color back to grey
     }
